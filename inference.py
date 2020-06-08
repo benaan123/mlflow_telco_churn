@@ -1,7 +1,7 @@
 
 import pandas as pd
-import requests
 from utils.feature_engineering import feature_engineering
+import requests
 
 ## Feature engineering pipeline
 new_data = pd.read_csv("new_data/new_data.csv")
@@ -27,5 +27,12 @@ http_data = inference_X.to_json(orient="split")
 
 r = requests.post(url=url, headers=headers, data=http_data)
 
-print(f"Predictions: {r.text}")
+preds = []
 
+for line in r.text.splitlines():
+    preds.append(line)
+
+preds = pd.DataFrame(preds)
+
+preds.to_csv("results/predictions.csv")
+print("Written to results/predictions.csv")
