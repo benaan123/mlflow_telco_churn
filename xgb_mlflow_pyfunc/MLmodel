@@ -3,10 +3,10 @@ flavors:
     artifacts:
       xgb_model:
         path: artifacts/model.pth
-        uri: file:///Users/benjamin.aanes/OneDrive%20-%20BearingPoint%20GmbH/ice/PoC%20kickstart/mlruns/0/466a97373b384dc59afe07e6e0d3e23e/artifacts/model.pth
+        uri: file:///Users/benjamin.aanes/OneDrive%20-%20BearingPoint%20GmbH/ice/poc2/mlruns/0/749cbb5165184727881c77a952d52ccf/artifacts/model.pth
     cloudpickle_version: 1.4.1
     env: conda.yaml
     loader_module: mlflow.pyfunc.model
     python_model: python_model.pkl
     python_version: 3.7.7
-utc_time_created: '2020-06-08 11:04:29.609265'
+utc_time_created: '2020-06-08 11:13:40.851419'

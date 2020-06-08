@@ -28,3 +28,4 @@ http_data = inference_X.to_json(orient="split")
 r = requests.post(url=url, headers=headers, data=http_data)
 
 print(f"Predictions: {r.text}")
+
