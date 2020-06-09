@@ -1,0 +1,4 @@
+artifact_location: file:///Users/benjamin.aanes/OneDrive%20-%20BearingPoint%20GmbH/ice/poc2/mlruns/1
+experiment_id: '1'
+lifecycle_stage: active
+name: churn_experiment_2

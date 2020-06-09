@@ -5,6 +5,9 @@
 - Perform feature engineering x
 - Train XGboost model, save x
 - Ability to make inference x
+- Add API for deploy given data x
+
 - Integrate shap decision values into output of inference
-- Dockerize training and inference
-- Add API for train/deploy given data
+
+- Dockerize inference
+

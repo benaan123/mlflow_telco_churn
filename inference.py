@@ -3,7 +3,7 @@ import pandas as pd
 from utils.feature_engineering import feature_engineering
 import requests
 
-## Feature engineering pipeline
+## Feature engineering "pipeline"
 new_data = pd.read_csv("new_data/new_data.csv")
 new_data.drop('Unnamed: 0', inplace=True, axis=1)
 engineered_new = feature_engineering(new_data)
@@ -15,7 +15,7 @@ inference_X  = telcom_new[cols]
 
 ## Set up host
 host = "0.0.0.0"
-port = "1234"
+port = "3000"
 
 url = f'http://{host}:{port}/invocations'
 

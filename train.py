@@ -4,16 +4,15 @@ import pandas as pd
 import numpy as np
 from scipy.stats import randint, uniform
 
-# Plot stuff
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 # Scikit learn
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, log_loss, confusion_matrix
 
 # Model
 from xgboost import XGBClassifier
+
+# Import seaborn
+import seaborn as sns
 
 # Import OS stuff
 import os
@@ -53,6 +52,7 @@ def log_xgboost(params, train_X, train_Y, test_X, test_Y):
         mlflow.log_metrics({'log_loss': loss, 'accuracy': acc})
         model.save_model("temp/model.pth")
         mlflow.log_artifact("temp/model.pth")
+        
         return model, predictions, acc, loss
 
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     # Read in the datas
     
-    experiment_name = "churn_prediction"
+    experiment_name = "churn_experiment_2"
 
     client = mlflow.tracking.MlflowClient()
 

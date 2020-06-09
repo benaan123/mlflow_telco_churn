@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/benjamin.aanes/OneDrive%20-%20BearingPoint%20GmbH/ice/poc2/mlruns/0/76401d74002e463a9a42ce0a49bbffd1/artifacts
+end_time: 1591618546176
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+name: ''
+run_id: 76401d74002e463a9a42ce0a49bbffd1
+run_uuid: 76401d74002e463a9a42ce0a49bbffd1
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1591618544182
+status: 3
+tags: []
+user_id: benjamin.aanes

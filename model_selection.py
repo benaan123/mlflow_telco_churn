@@ -46,7 +46,7 @@ conda_env = {
     "name": "xgb_env"
 }
 
-# Save the mlflow model
+# Save the mlflow model, this can be directly used to serve predictions using mlflow CLI
 mlflow_pyfunc_model_path = "xgb_mlflow_pyfunc"
 mlflow.pyfunc.save_model(
     path=mlflow_pyfunc_model_path, python_model=XGBWrapper(), artifacts=artifacts,
