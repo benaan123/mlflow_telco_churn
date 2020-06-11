@@ -33,7 +33,7 @@ def log_xgboost(params, train_X, train_Y, test_X, test_Y):
         mlflow.set_tag("state", "dev")
         xgc = XGBClassifier()
         xgc.set_params(**params)
-        model = xgc.fit(train_X, train_Y, eval_set=[(train_X, train_Y), (test_X, test_Y)], eval_metric=['error', 'logloss'])
+        model = xgc.fit(train_X, train_Y, eval_set=[(train_X, train_Y), (test_X, test_Y)], eval_metric=['error', 'logloss'], verbose=0)
         predictions = model.predict(test_X)
         acc = accuracy_score(test_Y, predictions)
         loss = log_loss(test_Y, predictions)
@@ -50,8 +50,10 @@ def log_xgboost(params, train_X, train_Y, test_X, test_Y):
         conf_mat_plot.figure.savefig("temp/confmat.png")
         mlflow.log_artifact("temp/confmat.png")
         mlflow.log_metrics({'log_loss': loss, 'accuracy': acc})
-        model.save_model("temp/model.pth")
-        mlflow.log_artifact("temp/model.pth")
+        
+        mlflow.xgboost.log_model(model, "model")
+        
+        print("Done")
         
         return model, predictions, acc, loss
 
@@ -61,7 +63,7 @@ if __name__ == "__main__":
 
     # Read in the datas
     
-    experiment_name = "churn_experiment_2"
+    experiment_name = "linux_test_4_all_threads"
 
     client = mlflow.tracking.MlflowClient()
 
@@ -72,7 +74,7 @@ if __name__ == "__main__":
 
     mlflow.set_experiment(experiment_name)
 
-    telcom_input = pd.read_csv(os.getcwd() + "/data/" + [l for l in os.listdir("data/") if l.endswith(".csv")][0])
+    telcom_input = pd.read_csv("data/" + [l for l in os.listdir("data/") if l.endswith(".csv")][0])
 
     engineered = feature_engineering(telcom_input)
     telcom = engineered[0]
@@ -106,7 +108,8 @@ if __name__ == "__main__":
             'gamma':gamma,
             'learning_rate': learning_rate,
             'colsample_bytree': 0.5,
-            'n_estimators': n_estimators
+            'n_estimators': n_estimators,
+            'n_threads': -1
 
         }
 

@@ -1,0 +1,4 @@
+artifact_location: file:///home/benjamin/Code/mlflow_telco_churn/mlruns/3
+experiment_id: '3'
+lifecycle_stage: active
+name: linux_test_log_model

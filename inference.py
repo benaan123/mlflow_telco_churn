@@ -15,7 +15,7 @@ inference_X  = telcom_new[cols]
 
 ## Set up host
 host = "0.0.0.0"
-port = "3000"
+port = "1234"
 
 url = f'http://{host}:{port}/invocations'
 
@@ -34,5 +34,5 @@ for line in r.text.splitlines():
 
 preds = pd.DataFrame(preds)
 
-preds.to_csv("results/predictions.csv")
-print("Written to results/predictions.csv")
+preds.to_csv("results/predictions_new.csv")
+print("Written to results/predictions_new.csv")

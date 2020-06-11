@@ -1,0 +1,15 @@
+artifact_uri: file:///home/benjamin/Code/mlflow_telco_churn/mlruns/2/8a18ec79244448b8bdd4eef2631cea47/artifacts
+end_time: 1591713033062
+entry_point_name: ''
+experiment_id: '2'
+lifecycle_stage: active
+name: ''
+run_id: 8a18ec79244448b8bdd4eef2631cea47
+run_uuid: 8a18ec79244448b8bdd4eef2631cea47
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1591713032705
+status: 4
+tags: []
+user_id: root
