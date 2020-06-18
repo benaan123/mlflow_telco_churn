@@ -21,6 +21,9 @@ import os
 import mlflow
 import mlflow.xgboost
 
+# S3
+import s3fs
+
 # Import packages
 from utils.plot_learning import plot_learning
 from utils.feature_engineering import feature_engineering
@@ -63,18 +66,23 @@ if __name__ == "__main__":
 
     # Read in the datas
     
-    experiment_name = "linux_test_4_all_threads"
+    experiment_name = "s3_test"
+
+    #tracking_uri = "http://0.0.0.0:5000"
 
     client = mlflow.tracking.MlflowClient()
+
+    #os.environ["MLFLOW_TRACKING_URI"] = tracking_uri
+   # os.environ["MLFLOW_ARTIFACT_URI"] = tracking_uri
+
+    mlflow.set_experiment(experiment_name)
 
     experiments = client.list_experiments()
 
     if experiment_name not in [experiment.name for experiment in experiments]:
         mlflow.create_experiment(experiment_name)
 
-    mlflow.set_experiment(experiment_name)
-
-    telcom_input = pd.read_csv("data/" + [l for l in os.listdir("data/") if l.endswith(".csv")][0])
+    telcom_input = pd.read_csv("s3://bearingsight-ingest/telco_churn.csv")
 
     engineered = feature_engineering(telcom_input)
     telcom = engineered[0]

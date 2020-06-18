@@ -1,0 +1,1 @@
+mlflow sagemaker deploy -a deployXgboostTest -m s3://bearingsight-models/mlflow/1/ed244b392af547b8bb579ad1db762068/artifacts/model -b bearingsight-models -t ml.t2.medium -c 1 -i 998155714215.dkr.ecr.eu-central-1.amazonaws.com/benjaminscontainer:1.8.0 --region-name eu-central-1
