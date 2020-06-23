@@ -14,10 +14,14 @@ target_col = engineered_new[3]
 cols    = [i for i in telcom_new.columns if i not in Id_col + target_col]
 inference_X  = telcom_new[cols]
 
+# Set host and port
+#host = "127.0.0.1"
+#port = "5001"
 host = "0.0.0.0"
-port = "5050"
+port = "5004"
 
 def get_predictions(host, port, data):
+    """ Takes a host ip, port and pandas dataframe and returns predictions from model endpoint."""
     url = f'http://{host}:{port}/invocations'
     headers = {
     'Content-Type': 'application/json'
@@ -25,11 +29,12 @@ def get_predictions(host, port, data):
     http_data = data.to_json(orient='split')
     r = requests.post(url=url, headers=headers, data=http_data)
     print(r)
+    print(r.text)
     return pd.DataFrame({"predictions": json.loads(r.text)})
 
 predictions = get_predictions(host, port, inference_X)
 
-predictions.head()
+print(predictions.head())
 
 predictions.to_csv("predictions/predictions.csv")
 print("Wrote predictions to predicitons/predictions.csv")

@@ -1,11 +1,9 @@
-import pickle
 import xgboost as xgb
 import mlflow.pyfunc
 from mlflow.xgboost import load_model
 from mlflow.tracking.client import MlflowClient
 from mlflow.entities import ViewType
-import sys
-from datetime import datetime
+import datetime
 
 from utils.feature_engineering import feature_engineering
 
@@ -32,12 +30,12 @@ xgb_model_path = f"runs:/{run.info.run_id}/model"
 class XGBWrapper(mlflow.pyfunc.PythonModel):
 
     def load_context(self, context):
-        self.model = load_model(xgb_model_path)
+        self.xgb_model = load_model(xgb_model_path)
     
     def predict(self, context, model_input):
         """Predict method that also does feature engineering"""
         model_input_dmatrix = xgb.DMatrix(model_input.values)
-        return self.model.predict(model_input_dmatrix)
+        return self.xgb_model.predict(model_input_dmatrix)
 
 
 # Create condaenv

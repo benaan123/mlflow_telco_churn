@@ -1,4 +1,3 @@
-
 # Data munging / maths
 import pandas as pd
 import numpy as np
@@ -25,8 +24,15 @@ import mlflow.xgboost
 from utils.plot_learning import plot_learning
 from utils.feature_engineering import feature_engineering
 
-def log_xgboost(params, train_X, train_Y, test_X, test_Y):
+def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
+    """ Takes a set of xgboost parameters, trains a model and logs parameters, metrics, artifacts and the model itself.
 
+        args:
+            params: Dictionary of xgboost parameters
+            train_X: pandas dataframe containing training features
+            train_Y: pandas dataframe containing training labels
+            test_X: pandas data
+    """
     with mlflow.start_run() as ml_run:
         
         # Her logger vi alle parameterene paa vei inn
@@ -38,11 +44,11 @@ def log_xgboost(params, train_X, train_Y, test_X, test_Y):
         
         xgc = XGBClassifier()
         xgc.set_params(**params)
-        model = xgc.fit(train_X, train_Y, eval_set=[(train_X, train_Y), (test_X, test_Y)], eval_metric=['error', 'logloss'], verbose=0)
+        model = xgc.fit(train_X, train_Y, eval_set=[(train_X, train_Y), (validation_X, validation_Y)], eval_metric=['error', 'logloss'], verbose=0)
         
-        predictions = model.predict(test_X)
-        acc = accuracy_score(test_Y, predictions)
-        loss = log_loss(test_Y, predictions)
+        predictions = model.predict(validation_X)
+        acc = accuracy_score(validation_Y, predictions)
+        loss = log_loss(validation_Y, predictions)
 
         ## Logging av ulike plots
 
@@ -55,7 +61,7 @@ def log_xgboost(params, train_X, train_Y, test_X, test_Y):
         loss_plot.savefig("temp/logloss.png")
         mlflow.log_artifact("temp/logloss.png")
         # Confusion matrix for klassifisering
-        conf_mat = confusion_matrix(test_Y, predictions)
+        conf_mat = confusion_matrix(validation_Y, predictions)
         conf_mat_plot = sns.heatmap(conf_mat, annot=True, fmt='g')
         conf_mat_plot.figure.savefig("temp/confmat.png")
         mlflow.log_artifact("temp/confmat.png")
@@ -66,7 +72,7 @@ def log_xgboost(params, train_X, train_Y, test_X, test_Y):
         # Logging av selve modellen
         mlflow.xgboost.log_model(model, "model")
         
-        print("Done")
+        print(f"Model trained with parameters: {params}" )
         
         return model, predictions, acc, loss
 
@@ -100,25 +106,24 @@ if __name__ == "__main__":
     target_col = engineered[3]
 
     #splitting train and test data 
-    train, test = train_test_split(telcom, test_size = .25 ,random_state = 111)
+    train, validation = train_test_split(telcom, test_size = .25 ,random_state = 111)
         
     ##seperating dependent and independent variables
     cols    = [i for i in telcom.columns if i not in Id_col + target_col]
     train_X = train[cols]
     train_Y = train[target_col]
-    test_X  = test[cols]
-    test_Y  = test[target_col]
+    validation_X  = validation[cols]
+    validation_Y  = validation[target_col]
     
     # Grid search
-    maxDepthList = [7]
-    gammaList = [0.1, 0.2]
-    learningRateList = [0.001, 0.01, 0.1]
-    nEstimatorsList = [50, 100, 150]
+    max_depth_list = [7]
+    gamma_list = [0.1, 0.2]
+    learning_rate_list = [0.001, 0.01, 0.1]
+    n_estimators_list = [50, 100, 150]
 
-    for max_depth, gamma, learning_rate, n_estimators in [(max_depth, gamma, learning_rate, n_estimators) for max_depth in maxDepthList for gamma in gammaList for learning_rate in learningRateList for n_estimators in nEstimatorsList]:
+    for max_depth, gamma, learning_rate, n_estimators in [(max_depth, gamma, learning_rate, n_estimators) for max_depth in max_depth_list for gamma in gamma_list for learning_rate in learning_rate_list for n_estimators in n_estimators_list]:
         
         params = {
-        # XGboost parameters
             'max_depth': max_depth,
             'gamma':gamma,
             'learning_rate': learning_rate,
@@ -128,7 +133,7 @@ if __name__ == "__main__":
 
         }
 
-        model, predictions, accuracy, loss = log_xgboost(params, train_X, train_Y, test_X, test_Y)
+        model, predictions, accuracy, loss = log_xgboost(params, train_X, train_Y, validation_X, validation_Y)
 
         print(accuracy, loss)
 
