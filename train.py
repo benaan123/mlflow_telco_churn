@@ -21,39 +21,49 @@ import os
 import mlflow
 import mlflow.xgboost
 
-# S3
-import s3fs
-
-# Import packages
+# Import utils
 from utils.plot_learning import plot_learning
 from utils.feature_engineering import feature_engineering
 
 def log_xgboost(params, train_X, train_Y, test_X, test_Y):
 
     with mlflow.start_run() as ml_run:
+        
+        # Her logger vi alle parameterene paa vei inn
         for k, v in params.items():
             mlflow.log_param(k, v)
+        
+        # Setter tag, her kan beste modell settes til "prod" senere
         mlflow.set_tag("state", "dev")
+        
         xgc = XGBClassifier()
         xgc.set_params(**params)
         model = xgc.fit(train_X, train_Y, eval_set=[(train_X, train_Y), (test_X, test_Y)], eval_metric=['error', 'logloss'], verbose=0)
+        
         predictions = model.predict(test_X)
         acc = accuracy_score(test_Y, predictions)
         loss = log_loss(test_Y, predictions)
 
-        ## Plots
+        ## Logging av ulike plots
+
+        # Trening/valideringserror
         error_plot = plot_learning(model, "error")
         error_plot.savefig("temp/error_plot.png")
         mlflow.log_artifact("temp/error_plot.png")
+        # Trening/valideringsloss
         loss_plot = plot_learning(model, "logloss")
         loss_plot.savefig("temp/logloss.png")
         mlflow.log_artifact("temp/logloss.png")
+        # Confusion matrix for klassifisering
         conf_mat = confusion_matrix(test_Y, predictions)
         conf_mat_plot = sns.heatmap(conf_mat, annot=True, fmt='g')
         conf_mat_plot.figure.savefig("temp/confmat.png")
         mlflow.log_artifact("temp/confmat.png")
+
+        # Logging av loss og accuracy verdier
         mlflow.log_metrics({'log_loss': loss, 'accuracy': acc})
         
+        # Logging av selve modellen
         mlflow.xgboost.log_model(model, "model")
         
         print("Done")
@@ -66,7 +76,7 @@ if __name__ == "__main__":
 
     # Read in the datas
     
-    experiment_name = "s3_test"
+    experiment_name = "da_demo_xgboost"
 
     #tracking_uri = "http://0.0.0.0:5000"
 
@@ -82,7 +92,7 @@ if __name__ == "__main__":
     if experiment_name not in [experiment.name for experiment in experiments]:
         mlflow.create_experiment(experiment_name)
 
-    telcom_input = pd.read_csv("s3://bearingsight-ingest/telco_churn.csv")
+    telcom_input = pd.read_csv("data/telco_churn.csv")
 
     engineered = feature_engineering(telcom_input)
     telcom = engineered[0]
@@ -98,11 +108,8 @@ if __name__ == "__main__":
     train_Y = train[target_col]
     test_X  = test[cols]
     test_Y  = test[target_col]
-
-    #mlflow.xgboost.autolog()
-
-    # Model
-
+    
+    # Grid search
     maxDepthList = [7]
     gammaList = [0.1, 0.2]
     learningRateList = [0.001, 0.01, 0.1]
@@ -117,7 +124,7 @@ if __name__ == "__main__":
             'learning_rate': learning_rate,
             'colsample_bytree': 0.5,
             'n_estimators': n_estimators,
-            'n_threads': -1
+            'n_jobs': -1
 
         }
 

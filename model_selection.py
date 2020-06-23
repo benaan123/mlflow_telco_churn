@@ -7,11 +7,11 @@ from mlflow.entities import ViewType
 import sys
 from datetime import datetime
 
-
 from utils.feature_engineering import feature_engineering
 
 ## Search through runs based on experiment ID and pick top accuracy model run
 client = MlflowClient()
+
 #mlflow.set_tracking_uri("http://0.0.0.0:5000")
 
 run = client.search_runs(
@@ -36,7 +36,9 @@ class XGBWrapper(mlflow.pyfunc.PythonModel):
     
     def predict(self, context, model_input):
         """Predict method that also does feature engineering"""
-        return self.xgb_model.predict(model_input)
+        model_input_dmatrix = xgb.DMatrix(model_input.values)
+        return self.model.predict(model_input_dmatrix)
+
 
 # Create condaenv
 import cloudpickle
