@@ -23,7 +23,7 @@ import mlflow.xgboost
 
 # Import utils
 from utils.plot_learning import plot_learning
-from utils.feature_engineering import feature_engineering
+from utils.load_data import load_data
 
 def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
     """ Takes a set of xgboost parameters, trains a model and logs parameters, metrics, artifacts and the model itself.
@@ -43,7 +43,7 @@ def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
         # Setter tag, her kan beste modell settes til "prod" senere
         mlflow.set_tag("state", "dev")
         
-        xgc = XGBClassifier()
+        xgc = XGBClassifier(objective="binary:logistic")
         xgc.set_params(**params)
         model = xgc.fit(train_X, train_Y.values.ravel(), eval_set=[(train_X, train_Y.values.ravel()), (validation_X, validation_Y.values.ravel())], eval_metric=['error', 'logloss'], verbose=0)
         
@@ -81,16 +81,15 @@ def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
 
 if __name__ == "__main__":
 
+    # Read in the datas
+    train_X, train_Y, test_X, test_Y = load_data("data/telco_churn.csv", test_size = 0.25)
+
     plt.rcParams.update({'figure.max_open_warning': 0})
 
     experiment_name = "da_demo_xgboost"
 
-    #tracking_uri = "http://0.0.0.0:5000"
-
     client = mlflow.tracking.MlflowClient()
-
     mlflow.set_experiment(experiment_name)
-
     experiments = client.list_experiments()
 
     if experiment_name not in [experiment.name for experiment in experiments]:
@@ -98,43 +97,28 @@ if __name__ == "__main__":
 
     telcom_input = pd.read_csv("data/telco_churn.csv")
 
-    engineered = feature_engineering(telcom_input)
-    telcom = engineered[0]
-    Id_col = engineered[2]
-    target_col = engineered[3]
-
-    #splitting train and test data 
-    train, validation = train_test_split(telcom, test_size = .25 ,random_state = 111)
-        
-    ##seperating dependent and independent variables
-    cols    = [i for i in telcom.columns if i not in Id_col + target_col]
-    train_X = train[cols]
-    train_Y = train[target_col]
-    validation_X  = validation[cols]
-    validation_Y  = validation[target_col]
-    
     # Grid search
-    max_depth_list = [7]
-    gamma_list = [0.1, 0.2]
-    learning_rate_list = [0.001, 0.01, 0.1]
-    n_estimators_list = [150, 200, 250]
+    max_depth_list = [5]
+    colsample_bytree_list = [0.3, 0.5, 0.8]
+    learning_rate_list = [0.1, 0.2]
+    n_estimators_list = [200, 250, 300]
 
     for max_depth in max_depth_list:
-        for gamma in gamma_list:
+        for colsample_bytree in colsample_bytree_list:
             for learning_rate in learning_rate_list:
                 for n_estimators in n_estimators_list:
-        
                     params = {
+                    # XGboost parameters
                         'max_depth': max_depth,
-                        'gamma':gamma,
+                        'gamma': 0,
                         'learning_rate': learning_rate,
-                        'colsample_bytree': 0.5,
+                        'colsample_bytree': colsample_bytree,
                         'n_estimators': n_estimators,
                         'n_jobs': -1
 
                     }
 
-                    model, predictions, accuracy, loss = log_xgboost(params, train_X, train_Y, validation_X, validation_Y)
+                    model, predictions, accuracy, loss = log_xgboost(params, train_X, train_Y, test_X, test_Y)
 
                     print(accuracy, loss)
 

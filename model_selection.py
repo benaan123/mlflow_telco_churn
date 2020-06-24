@@ -10,8 +10,6 @@ from utils.feature_engineering import feature_engineering
 ## Search through runs based on experiment ID and pick top accuracy model run
 client = MlflowClient()
 
-#mlflow.set_tracking_uri("http://0.0.0.0:5000")
-
 run = client.search_runs(
     experiment_ids="1",
     filter_string="",
@@ -19,8 +17,6 @@ run = client.search_runs(
     max_results=1,
     order_by=["metrics.accuracy DESC"]
 )[0]
-
-
 
 # Get path to saved xgb model artifact
 # Could also here set tag for this model to "prod"
