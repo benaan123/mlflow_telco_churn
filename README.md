@@ -16,7 +16,14 @@ Model training (simple grid search xgboost): train.py
 Model selection and "packaging": model_selection.py
 Model inference (given "mlflow model serve" is used): inference.py
 
-## Todo
-- Finish shapley value script to get shap values from a given model run.
-- Potentially add shapley decision plot or similar to rest API.
+## How to
+1. ```git clone https://github.com/benaan123/mlflow_telco_churn.git```
+2. ```conda create -n "my_env" python=3.7```
+4. ```conda activate "my_env"```
+3. ```pip install -r requirements.txt```
+4. ```python train.py``` or run through train_notebook.ipynb to fill mlruns folder with runs
+5. ```mlflow ui``` to run mlflow ui on localhost. Alternatively ```mlflow server --h 0.0.0.0 -p 1234``` to run mlflow server locally on port 1234.
+6. ```python model_selection.py``` to create a model folder "xgboost_" containing best model
+7. ```mlflow models serve -m xgboost_ -p 5004``` to serve model on localhost:5004. Alterenatively, get the run id from the best model and run ```mlflow models build-docker -m "path/to/run/artifacts/model" -n "my_model_name"``` followed by ```docker run "my_model_name" -p 5001:8000``` to serve model through a docker container on localhost:5001
+8. ```python inference.py``` to perform inference on test data and save in predictions/ folder. Change port if build-docker+docker run/serve is used.
 

@@ -12,6 +12,7 @@ from xgboost import XGBClassifier
 
 # Import seaborn
 import seaborn as sns
+import matplotlib as plt
 
 # Import OS stuff
 import os
@@ -80,16 +81,13 @@ def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
 
 if __name__ == "__main__":
 
-    # Read in the datas
-    
+    plt.rcParams.update({'figure.max_open_warning': 0})
+
     experiment_name = "da_demo_xgboost"
 
     #tracking_uri = "http://0.0.0.0:5000"
 
     client = mlflow.tracking.MlflowClient()
-
-    #os.environ["MLFLOW_TRACKING_URI"] = tracking_uri
-   # os.environ["MLFLOW_ARTIFACT_URI"] = tracking_uri
 
     mlflow.set_experiment(experiment_name)
 
