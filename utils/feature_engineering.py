@@ -11,7 +11,6 @@ def feature_engineering(telcom):
 
 	"""
 
-
 	#Replacing spaces with null values in total charges column
 	telcom['TotalCharges'] = telcom["TotalCharges"].replace(" ",np.nan)
 

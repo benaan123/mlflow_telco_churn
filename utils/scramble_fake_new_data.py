@@ -12,5 +12,4 @@ old_data = os.getcwd() + "/data/" + [s for s in os.listdir('data/') if s.endswit
 
 new_data = scramble_fake_new_data(old_data, 42, 0.3)
 
-
-new_data.to_csv(os.getcwd() + "/new_data/new_data.csv")
+new_data.to_csv(os.getcwd() + "/new_data/new_data.csv", index=False)

@@ -1,9 +1,0 @@
-channels:
-- defaults
-dependencies:
-- python=3.7.6
-- cloudpickle=1.4.1
-- pip:
-  - xgboost==1.1.1
-  - mlflow
-name: xgb_env

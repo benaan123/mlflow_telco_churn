@@ -26,7 +26,7 @@ import s3fs
 
 # Import packages
 from utils.plot_learning import plot_learning
-from utils.feature_engineering import feature_engineering
+from utils.load_data import load_data
 
 def log_xgboost(params, train_X, train_Y, test_X, test_Y):
 
@@ -34,12 +34,12 @@ def log_xgboost(params, train_X, train_Y, test_X, test_Y):
         for k, v in params.items():
             mlflow.log_param(k, v)
         mlflow.set_tag("state", "dev")
-        xgc = XGBClassifier()
+        xgc = XGBClassifier(objective="binary:logistic")
         xgc.set_params(**params)
-        model = xgc.fit(train_X, train_Y, eval_set=[(train_X, train_Y), (test_X, test_Y)], eval_metric=['error', 'logloss'], verbose=0)
+        model = xgc.fit(train_X, train_Y.values.ravel(), eval_set=[(train_X, train_Y.values.ravel()), (test_X, test_Y.values.ravel())], eval_metric=['error', 'logloss'], verbose=0)
         predictions = model.predict(test_X)
-        acc = accuracy_score(test_Y, predictions)
-        loss = log_loss(test_Y, predictions)
+        acc = accuracy_score(test_Y.values.ravel(), predictions)
+        loss = log_loss(test_Y.values.ravel(), predictions)
 
         ## Plots
         error_plot = plot_learning(model, "error")
@@ -56,7 +56,7 @@ def log_xgboost(params, train_X, train_Y, test_X, test_Y):
         
         mlflow.xgboost.log_model(model, "model")
         
-        print("Done")
+        print(f"Model trained with parameters: {params}")
         
         return model, predictions, acc, loss
 
@@ -65,15 +65,13 @@ def log_xgboost(params, train_X, train_Y, test_X, test_Y):
 if __name__ == "__main__":
 
     # Read in the datas
-    
-    experiment_name = "s3_test"
+    train_X, train_Y, test_X, test_Y = load_data("s3://bearingsight-ingest/telco_churn.csv", test_size = 0.25)
 
-    #tracking_uri = "http://0.0.0.0:5000"
+    experiment_name = "s3_mlflow"
+
+    tracking_uri = "http://0.0.0.0:5000"
 
     client = mlflow.tracking.MlflowClient()
-
-    #os.environ["MLFLOW_TRACKING_URI"] = tracking_uri
-   # os.environ["MLFLOW_ARTIFACT_URI"] = tracking_uri
 
     mlflow.set_experiment(experiment_name)
 
@@ -81,47 +79,28 @@ if __name__ == "__main__":
 
     if experiment_name not in [experiment.name for experiment in experiments]:
         mlflow.create_experiment(experiment_name)
+                
+    max_depth_list = [5]
+    colsample_bytree_list = [0.3, 0.5, 0.8]
+    learning_rate_list = [0.1, 0.2]
+    n_estimators_list = [200, 250, 300]
 
-    telcom_input = pd.read_csv("s3://bearingsight-ingest/telco_churn.csv")
+    for max_depth in max_depth_list:
+        for colsample_bytree in colsample_bytree_list:
+            for learning_rate in learning_rate_list:
+                for n_estimators in n_estimators_list:
+                    params = {
+                    # XGboost parameters
+                        'max_depth': max_depth,
+                        'gamma': 0,
+                        'learning_rate': learning_rate,
+                        'colsample_bytree': colsample_bytree,
+                        'n_estimators': n_estimators,
+                        'n_threads': -1
 
-    engineered = feature_engineering(telcom_input)
-    telcom = engineered[0]
-    Id_col = engineered[2]
-    target_col = engineered[3]
+                    }
 
-    #splitting train and test data 
-    train, test = train_test_split(telcom, test_size = .25 ,random_state = 111)
-        
-    ##seperating dependent and independent variables
-    cols    = [i for i in telcom.columns if i not in Id_col + target_col]
-    train_X = train[cols]
-    train_Y = train[target_col]
-    test_X  = test[cols]
-    test_Y  = test[target_col]
+                    model, predictions, accuracy, loss = log_xgboost(params, train_X, train_Y, test_X, test_Y)
 
-    #mlflow.xgboost.autolog()
-
-    # Model
-
-    maxDepthList = [7]
-    gammaList = [0.1, 0.2]
-    learningRateList = [0.001, 0.01, 0.1]
-    nEstimatorsList = [50, 100, 150]
-
-    for max_depth, gamma, learning_rate, n_estimators in [(max_depth, gamma, learning_rate, n_estimators) for max_depth in maxDepthList for gamma in gammaList for learning_rate in learningRateList for n_estimators in nEstimatorsList]:
-        
-        params = {
-        # XGboost parameters
-            'max_depth': max_depth,
-            'gamma':gamma,
-            'learning_rate': learning_rate,
-            'colsample_bytree': 0.5,
-            'n_estimators': n_estimators,
-            'n_threads': -1
-
-        }
-
-        model, predictions, accuracy, loss = log_xgboost(params, train_X, train_Y, test_X, test_Y)
-
-        print(accuracy, loss)
+                    print(accuracy, loss)
 
