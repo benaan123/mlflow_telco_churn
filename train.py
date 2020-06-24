@@ -44,11 +44,11 @@ def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
         
         xgc = XGBClassifier()
         xgc.set_params(**params)
-        model = xgc.fit(train_X, train_Y, eval_set=[(train_X, train_Y), (validation_X, validation_Y)], eval_metric=['error', 'logloss'], verbose=0)
+        model = xgc.fit(train_X, train_Y.values.ravel(), eval_set=[(train_X, train_Y.values.ravel()), (validation_X, validation_Y.values.ravel())], eval_metric=['error', 'logloss'], verbose=0)
         
         predictions = model.predict(validation_X)
-        acc = accuracy_score(validation_Y, predictions)
-        loss = log_loss(validation_Y, predictions)
+        acc = accuracy_score(validation_Y.values.ravel(), predictions)
+        loss = log_loss(validation_Y.values.ravel(), predictions)
 
         ## Logging av ulike plots
 
@@ -72,7 +72,7 @@ def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
         # Logging av selve modellen
         mlflow.xgboost.log_model(model, "model")
         
-        print(f"Model trained with parameters: {params}" )
+        print(f"Model trained with parameters: {params}")
         
         return model, predictions, acc, loss
 
@@ -119,21 +119,24 @@ if __name__ == "__main__":
     max_depth_list = [7]
     gamma_list = [0.1, 0.2]
     learning_rate_list = [0.001, 0.01, 0.1]
-    n_estimators_list = [50, 100, 150]
+    n_estimators_list = [150, 200, 250]
 
-    for max_depth, gamma, learning_rate, n_estimators in [(max_depth, gamma, learning_rate, n_estimators) for max_depth in max_depth_list for gamma in gamma_list for learning_rate in learning_rate_list for n_estimators in n_estimators_list]:
+    for max_depth in max_depth_list:
+        for gamma in gamma_list:
+            for learning_rate in learning_rate_list:
+                for n_estimators in n_estimators_list:
         
-        params = {
-            'max_depth': max_depth,
-            'gamma':gamma,
-            'learning_rate': learning_rate,
-            'colsample_bytree': 0.5,
-            'n_estimators': n_estimators,
-            'n_jobs': -1
+                    params = {
+                        'max_depth': max_depth,
+                        'gamma':gamma,
+                        'learning_rate': learning_rate,
+                        'colsample_bytree': 0.5,
+                        'n_estimators': n_estimators,
+                        'n_jobs': -1
 
-        }
+                    }
 
-        model, predictions, accuracy, loss = log_xgboost(params, train_X, train_Y, validation_X, validation_Y)
+                    model, predictions, accuracy, loss = log_xgboost(params, train_X, train_Y, validation_X, validation_Y)
 
-        print(accuracy, loss)
+                    print(accuracy, loss)
 

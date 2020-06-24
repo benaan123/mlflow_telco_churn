@@ -26,7 +26,6 @@ run = client.search_runs(
 # Could also here set tag for this model to "prod"
 xgb_model_path = f"runs:/{run.info.run_id}/model"
 
-
 class XGBWrapper(mlflow.pyfunc.PythonModel):
 
     def load_context(self, context):
