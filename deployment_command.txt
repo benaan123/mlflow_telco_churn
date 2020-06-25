@@ -1,1 +1,15 @@
+mlflow server -h 0.0.0.0 -p 5000 --default-artifact-root s3://bearingsight-models/mlflow/
+
+export APP_NAME=deployXgboostTest
+export 
+
+aws ecr get-login-password \
+    --region eu-central-1 \
+| docker login \
+    --username AWS \
+    --password-stdin 998155714215.dkr.ecr.eu-central-1.amazonaws.com
+
+mlflow sagemaker run-local -m s3://bearingsight-models/mlflow/1/ab10b39a565440fc861726d3804d5530/artifacts/model -i xgboost_mlflow_container -p 5004
+
 mlflow sagemaker deploy -a deployXgboostTest -m s3://bearingsight-models/mlflow/1/ed244b392af547b8bb579ad1db762068/artifacts/model -b bearingsight-models -t ml.t2.medium -c 1 -i 998155714215.dkr.ecr.eu-central-1.amazonaws.com/benjaminscontainer:1.8.0 --region-name eu-central-1
+
