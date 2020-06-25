@@ -12,7 +12,7 @@ from xgboost import XGBClassifier
 
 # Import seaborn
 import seaborn as sns
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 # Import OS stuff
 import os
@@ -70,7 +70,7 @@ def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
         loss_plot = plot_learning(model, "logloss")
         loss_plot.savefig("temp/logloss.png")
         mlflow.log_artifact("temp/logloss.png")
-
+        plt.clf()
         # Confusion matrix for klassifisering
         conf_mat = confusion_matrix(validation_Y, predictions)
         conf_mat_plot = sns.heatmap(conf_mat, annot=True, fmt='g')
@@ -100,6 +100,11 @@ if __name__ == "__main__":
     experiments = client.list_experiments()
     if experiment_name not in [experiment.name for experiment in experiments]:
         mlflow.create_experiment(experiment_name)
+    
+    max_depth_list = [5]
+    colsample_bytree_list = [0.3, 0.5, 0.8]
+    learning_rate_list = [0.1, 0.2]
+    n_estimators_list = [200, 250, 300]
 
     params = {
     # XGboost parameters
@@ -114,4 +119,5 @@ if __name__ == "__main__":
     run_id, accuracy, loss = log_xgboost(params, train_X, train_Y, test_X, test_Y)
 
     print(f"run_path: runs:/{run_id}/model, accuracy: {accuracy}, loss: {loss}")
+
 
