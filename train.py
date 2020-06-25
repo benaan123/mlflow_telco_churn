@@ -43,82 +43,75 @@ def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
         # Setter tag, her kan beste modell settes til "prod" senere
         mlflow.set_tag("state", "dev")
         
+        # Setter opp modell som vanlig
         xgc = XGBClassifier(objective="binary:logistic")
         xgc.set_params(**params)
-        model = xgc.fit(train_X, train_Y.values.ravel(), eval_set=[(train_X, train_Y.values.ravel()), (validation_X, validation_Y.values.ravel())], eval_metric=['error', 'logloss'], verbose=0)
+        model = xgc.fit(train_X,
+                        train_Y.values.ravel(),
+                        eval_set=[(train_X, train_Y.values.ravel()), (validation_X, validation_Y.values.ravel())],
+                        eval_metric=['error', 'logloss'], verbose=0)
         
+        # Henter validation predictions, kalkulerer accuracy og loss
         predictions = model.predict(validation_X)
         acc = accuracy_score(validation_Y.values.ravel(), predictions)
         loss = log_loss(validation_Y.values.ravel(), predictions)
 
-        ## Logging av ulike plots
+        # Logging av loss og accuracy verdier (metrics)
+        mlflow.log_metrics({'log_loss': loss, 'accuracy': acc})
+        
+        # Logging av ulike plots (artifacts)
 
-        # Trening/valideringserror
+        # Trening/valideringserror for ulike n_estimator verdier
         error_plot = plot_learning(model, "error")
         error_plot.savefig("temp/error_plot.png")
         mlflow.log_artifact("temp/error_plot.png")
-        # Trening/valideringsloss
+
+        # Trening/valideringsloss for ulike n_estimator-verdier
         loss_plot = plot_learning(model, "logloss")
         loss_plot.savefig("temp/logloss.png")
         mlflow.log_artifact("temp/logloss.png")
+
         # Confusion matrix for klassifisering
         conf_mat = confusion_matrix(validation_Y, predictions)
         conf_mat_plot = sns.heatmap(conf_mat, annot=True, fmt='g')
         conf_mat_plot.figure.savefig("temp/confmat.png")
         mlflow.log_artifact("temp/confmat.png")
 
-        # Logging av loss og accuracy verdier
-        mlflow.log_metrics({'log_loss': loss, 'accuracy': acc})
-        
         # Logging av selve modellen
         mlflow.xgboost.log_model(model, "model")
         
         print(f"Model trained with parameters: {params}")
         
-        return model, predictions, acc, loss
+        return ml_run.info.run_id, acc, loss
 
 
 
 if __name__ == "__main__":
 
-    # Read in the datas
+    # Load in data    
     train_X, train_Y, test_X, test_Y = load_data("data/telco_churn.csv", test_size = 0.25)
 
     plt.rcParams.update({'figure.max_open_warning': 0})
 
+    # Sett opp nytt eksperiment om det ikke eksisterer allerede
     experiment_name = "da_demo_xgboost"
-
     client = mlflow.tracking.MlflowClient()
     mlflow.set_experiment(experiment_name)
     experiments = client.list_experiments()
-
     if experiment_name not in [experiment.name for experiment in experiments]:
         mlflow.create_experiment(experiment_name)
 
-    telcom_input = pd.read_csv("data/telco_churn.csv")
+    params = {
+    # XGboost parameters
+        'max_depth': 5,
+        'gamma': 0,
+        'learning_rate': 0.1,
+        'colsample_bytree': 0.3,
+        'n_estimators': 200,
+        'n_jobs': -1
+    }
 
-    # Grid search
-    max_depth_list = [5]
-    colsample_bytree_list = [0.3, 0.5, 0.8]
-    learning_rate_list = [0.1, 0.2]
-    n_estimators_list = [200, 250, 300]
+    run_id, accuracy, loss = log_xgboost(params, train_X, train_Y, test_X, test_Y)
 
-    for max_depth in max_depth_list:
-        for colsample_bytree in colsample_bytree_list:
-            for learning_rate in learning_rate_list:
-                for n_estimators in n_estimators_list:
-                    params = {
-                    # XGboost parameters
-                        'max_depth': max_depth,
-                        'gamma': 0,
-                        'learning_rate': learning_rate,
-                        'colsample_bytree': colsample_bytree,
-                        'n_estimators': n_estimators,
-                        'n_jobs': -1
-
-                    }
-
-                    model, predictions, accuracy, loss = log_xgboost(params, train_X, train_Y, test_X, test_Y)
-
-                    print(accuracy, loss)
+    print(f"run_path: runs:/{run_id}/model, accuracy: {accuracy}, loss: {loss}")
 
