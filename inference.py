@@ -6,15 +6,17 @@ import json
 
 def get_predictions(host, port, data):
     """ Takes a host ip, port and pandas dataframe and returns predictions from model endpoint."""
+    
     # Serving URL
     url = f'http://{host}:{port}/invocations'
     
-    # Header, format defaults to pandas-split
+    # Header, format defaults to split orient json
     headers = {
     'Content-Type': 'application/json'
     }
 
     # Transform df to split oriented json
+    # split : dict like {index -> [index], columns -> [columns], data -> [values]}
     http_data = data.to_json(orient='split')
 
     # Send post request

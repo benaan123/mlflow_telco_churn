@@ -1,20 +1,15 @@
-import xgboost as xgb
-import mlflow.pyfunc
-from mlflow.xgboost import load_model
 from mlflow.tracking.client import MlflowClient
 from mlflow.entities import ViewType
-import datetime
 import os
 
-from utils.feature_engineering import feature_engineering
-
-## Search through runs based on experiment ID and pick top accuracy model run
 
 if __name__ == "__main__":
+    ## Search through runs based on experiment ID and pick top accuracy model run
+
     client = MlflowClient()
 
     run = client.search_runs(
-        experiment_ids="2",
+        experiment_ids="1",
         filter_string="",
         run_view_type=ViewType.ACTIVE_ONLY,
         max_results=1,
@@ -25,4 +20,7 @@ if __name__ == "__main__":
     # Could also here set tag for this model to "prod"
     xgb_model_path = f"runs:/{run.info.run_id}/model"
 
-    os.system(f"mlflow models serve -m {xgb_model_path} -p 5004")
+    #os.system(f"mlflow models serve -m {xgb_model_path} -p 5004")
+    #os.system(f"mlflow models build-docker -m {xgb_model_path} -n xgb_da_mote")
+    os.system(f"mlflow sagemaker run-local -m {xgb_model_path} -i xgboost_mlflow_container -p 5004")
+    #os.system(f"mlflow sagemaker deploy -a deployXgboostTest -m {xgb_model_path} -t ml.t2.medium -c 1 -i 998155714215.dkr.ecr.eu-central-1.amazonaws.com/benjaminscontainer:1.8.0 --region-name eu-central-1")

@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
     params = {
     # XGboost parameters
-        'max_depth': 5,
+        'max_depth': 7,
         'gamma': 0,
         'learning_rate': 0.1,
         'colsample_bytree': 0.3,
