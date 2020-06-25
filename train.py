@@ -25,7 +25,7 @@ import mlflow.xgboost
 from utils.plot_learning import plot_learning
 from utils.load_data import load_data
 
-def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
+def log_xgboost(params, dataset_path, train_X, train_Y, validation_X, validation_Y):
     """ Takes a set of xgboost parameters, trains a model and logs parameters, metrics, artifacts and the model itself.
 
         args:
@@ -40,6 +40,9 @@ def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
         for k, v in params.items():
             mlflow.log_param(k, v)
         
+        mlflow.log_param("dataset_path", dataset_path)
+        mlflow.log_param("features", list(train_X.columns.values))
+
         # Setter tag, her kan beste modell settes til "prod" senere
         mlflow.set_tag("state", "dev")
         
@@ -52,12 +55,16 @@ def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
                         eval_metric=['error', 'logloss'], verbose=0)
         
         # Henter validation predictions, kalkulerer accuracy og loss
+        pred_train = model.predict(train_X)
+        acc_train = accuracy_score(train_Y.values.ravel(), pred_train)
+        loss_train = log_loss(train_Y.values.ravel(), pred_train)
         predictions = model.predict(validation_X)
         acc = accuracy_score(validation_Y.values.ravel(), predictions)
         loss = log_loss(validation_Y.values.ravel(), predictions)
 
         # Logging av loss og accuracy verdier (metrics)
-        mlflow.log_metrics({'log_loss': loss, 'accuracy': acc})
+        mlflow.log_metrics({'acc_train': acc_train, 'loss_train': loss_train})
+        mlflow.log_metrics({'acc_validation': acc, 'loss_validation': loss})
         
         # Logging av ulike plots (artifacts)
 
@@ -89,7 +96,8 @@ def log_xgboost(params, train_X, train_Y, validation_X, validation_Y):
 if __name__ == "__main__":
 
     # Load in data    
-    train_X, train_Y, test_X, test_Y = load_data("data/telco_churn.csv", test_size = 0.25)
+    dataset_path = "data/telco_churn.csv"
+    train_X, train_Y, test_X, test_Y = load_data(dataset_path, test_size = 0.25)
 
     plt.rcParams.update({'figure.max_open_warning': 0})
 
@@ -101,11 +109,6 @@ if __name__ == "__main__":
     if experiment_name not in [experiment.name for experiment in experiments]:
         mlflow.create_experiment(experiment_name)
     
-    max_depth_list = [5]
-    colsample_bytree_list = [0.3, 0.5, 0.8]
-    learning_rate_list = [0.1, 0.2]
-    n_estimators_list = [200, 250, 300]
-
     params = {
     # XGboost parameters
         'max_depth': 7,
@@ -116,7 +119,7 @@ if __name__ == "__main__":
         'n_jobs': -1
     }
 
-    run_id, accuracy, loss = log_xgboost(params, train_X, train_Y, test_X, test_Y)
+    run_id, accuracy, loss = log_xgboost(params, dataset_path, train_X, train_Y, test_X, test_Y)
 
     print(f"run_path: runs:/{run_id}/model, accuracy: {accuracy}, loss: {loss}")
 
