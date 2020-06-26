@@ -13,7 +13,7 @@ if __name__ == "__main__":
         filter_string="",
         run_view_type=ViewType.ACTIVE_ONLY,
         max_results=1,
-        order_by=["metrics.accuracy DESC"]
+        order_by=["metrics.acc_validation DESC"]
     )[0]
 
     # Get path to saved xgb model artifact
