@@ -1,4 +1,4 @@
-artifact_location: file:///home/benjamin/Code/mlflow_telco_churn/mlruns/1
+artifact_location: file:///Users/benjamin.aanes/code/mlflow_telco_churn/mlruns/1
 experiment_id: '1'
 lifecycle_stage: active
-name: s3_test
+name: s3_mlflow

@@ -96,7 +96,7 @@ if __name__ == "__main__":
                         'learning_rate': learning_rate,
                         'colsample_bytree': colsample_bytree,
                         'n_estimators': n_estimators,
-                        'n_threads': -1
+                        'n_jobs': -1
 
                     }
 
